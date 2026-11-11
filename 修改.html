@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>iPhone 16 Pro 摄影风格元数据修改与预览</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glass-card {
+      background: rgba(24, 24, 27, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center px-4 py-6 sm:py-10">
+
+  <main class="w-full max-w-xl mx-auto flex flex-col gap-5">
+    <!-- Top Header Card -->
+    <section class="glass-card border border-zinc-800/80 rounded-3xl p-5 sm:p-6 shadow-2xl">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="inline-flex items-center justify-center w-9 h-9 rounded-2xl bg-amber-500/15 border border-amber-400/30 text-amber-300">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+            </svg>
+          </span>
+          <div>
+            <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-white">iPhone 16 Pro 元数据伪装查看器</h1>
+            <p class="text-xs text-zinc-400">单张选择 · 自动注入摄影风格与机型元数据 · 页内直接展示</p>
+          </div>
+        </div>
+        <span id="statusBadge" class="px-2.5 py-1 text-xs font-medium rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">
+          等待选图
+        </span>
+      </div>
+
+      <!-- Hidden Single-File Input (No accept attribute so iOS does not force JPEG transcode) -->
+      <input
+        id="photoInput"
+        type="file"
+        class="sr-only"
+      />
+
+      <!-- Single Action Button to Open iOS System Photo Picker -->
+      <button
+        id="pickPhotoBtn"
+        type="button"
+        class="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-[0.99] text-zinc-950 font-semibold text-base shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2.5 cursor-pointer"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+        </svg>
+        <span id="pickBtnText">选择照片并自动修改</span>
+      </button>
+    </section>
+
+    <!-- Modified Image Display Area -->
+    <section id="displaySection" class="glass-card border border-zinc-800/80 rounded-3xl p-4 sm:p-5 shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-medium text-zinc-400" id="photoTitle">修改后照片展示区</span>
+        <span class="text-xs font-mono text-amber-400" id="formatTag">未加载文件</span>
+      </div>
+
+      <!-- Empty State Placeholder -->
+      <div id="emptyState" class="w-full py-14 px-4 rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/40 flex flex-col items-center justify-center text-center gap-2">
+        <svg class="w-10 h-10 text-zinc-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+        </svg>
+        <p class="text-sm text-zinc-400">点击上方按钮选择一张照片</p>
+        <p class="text-xs text-zinc-500">选择后将在内存自动完成 iPhone 16 Pro 元数据伪装并直接在此处展示，不触发任何自动下载弹窗</p>
+      </div>
+
+      <!-- iOS Format Tip Banner -->
+      <div id="iosNoticeBanner" class="w-full rounded-2xl bg-amber-500/10 border border-amber-500/30 px-3.5 py-2.5 text-xs text-amber-200/90 leading-relaxed">
+        <strong class="text-amber-300">iOS 保持 .HEIF 调色盘必读：</strong>① 选图时若点“照片图库”，请先点左下角<strong>【选项】→ 格式改选【当前】</strong>（或点“选择文件”选原图），否则 iOS 会在传入网页前把 HEIC 转成 JPEG；② 在 Chrome 长按网页图片保存会被浏览器重编码为 JPEG，请直接<strong>点击下方展示的照片（或照片下方按钮）→ 选【存储图像】</strong>以原格式写入系统相册。
+      </div>
+
+      <!-- Modified Photo Container (Hidden until photo is chosen) -->
+      <div id="imageWrapper" class="hidden w-full rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center p-2 gap-2.5">
+        <img
+          id="modifiedPhotoImg"
+          alt="修改后的照片预览"
+          class="max-w-full h-auto max-h-[68vh] object-contain select-auto rounded-xl cursor-pointer"
+          title="点击调用 iOS 系统面板原格式存入相册"
+        />
+        <button
+          id="saveToPhotosBtn"
+          type="button"
+          class="w-full py-2.5 px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 active:scale-[0.99] border border-zinc-700 text-amber-300 text-xs font-medium transition flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>点击此处或点击上方照片 → 选【存储图像】以 .HEIF 原格式存入相册（防转 JPEG / 不存到“文件”）</span>
+        </button>
+      </div>
+
+      <!-- Live Metadata Diff Readout -->
+      <div id="metaReport" class="hidden flex flex-col gap-2.5 pt-1">
+        <div class="text-xs font-semibold text-zinc-300 flex items-center justify-between">
+          <span>本次自动修改的元数据明细</span>
+          <span id="procTime" class="text-[11px] font-mono text-emerald-400"></span>
+        </div>
+        <div id="metaList" class="grid grid-cols-1 gap-2 text-xs"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Embedded binary templates from iPhone 16 Pro donor (IMG_2060.HEIC)
+    const B64_0054 = "YnBsaXN0MDDYAQIDBAUGBwgJCgsMDQ4PDlE3UTNRNFEwUTVRMVE2UTIQACI/gAAAEAEQARABIgAAAAAQBAgZGx0fISMlJykrMDI0NjsAAAAAAAABAQAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAPQ==";
+    const B64_005A = "YnBsaXN0MDDVAQIDBAUGBwgHCVEzUTFRNFEyUTAiPMzX2yIAAAAAIj8qAZUQAQgTFRcZGx0iJywAAAAAAAABAQAAAAAAAAAKAAAAAAAAAAAAAAAAAAAALg==";
+    const B64_COLR_SDM = "AAACPGNvbHJwcm9mAAACMGFwcGwEAAAAbW50clJHQiBYWVogB+MAAQABAAAAAAAAYWNzcEFQUEwAAAAAQVBQTAAAAAAAAAAAAAAAAAAAAAAAAPbWAAEAAAAA0y1hcHBsX7/VQcvuTpXllWLEtDLoDwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALZGVzYwAAAQgAAAA+Y3BydAAAAUgAAABQd3RwdAAAAZgAAAAUclhZWgAAAawAAAAUZ1hZWgAAAcAAAAAUYlhZWgAAAdQAAAAUclRSQwAAAegAAAAQY2hhZAAAAfgAAAAsY2ljcAAAAiQAAAAMYlRSQwAAAegAAAAQZ1RSQwAAAegAAAAQbWx1YwAAAAAAAAABAAAADGVuVVMAAAAiAAAAHABEAGkAcwBwAGwAYQB5ACAAUAAzACAATABpAG4AZQBhAHIAAG1sdWMAAAAAAAAAAQAAAAxlblVTAAAANAAAABwAQwBvAHAAeQByAGkAZwBoAHQAIABBAHAAcABsAGUAIABJAG4AYwAuACwAIAAyADAAMQA5WFlaIAAAAAAAAPbWAAEAAAAA0y1YWVogAAAAAAAAg98AAD2/////u1hZWiAAAAAAAABKvwAAsTcAAAq5WFlaIAAAAAAAACg4AAARCwAAyLlwYXJhAAAAAAAAAAAAAQAAc2YzMgAAAAAAAQxCAAAF3v//8yYAAAeTAAD9kP//+6L///2jAAAD3AAAwG5jaWNwAAAAAAwIAAE=";
+    const B64_AUX_LIN = "AAAAOWF1eEMAAAAAdGFnOmFwcGxlLmNvbSwyMDIzOnBob3RvOmF1eDpsaW5lYXJ0aHVtYm5haWwA";
+    const B64_ISPE_4096 = "AAAAFGlzcGUAAAAAAAAQAAAADAA=";
+    const B64_AUX_SDM = "AAAAN2F1eEMAAAAAdGFnOmFwcGxlLmNvbSwyMDIzOnBob3RvOmF1eDpzdHlsZWRlbHRhbWFwAA==";
+    const B64_HVCC_SDM = "AAAAemh2Y0MBAiAAAACQAAAAAABa8AD8/fr6AAAPA6AAAQAYQAEMAf//AiAAAAMAkAAAAwAAAwBakoCQoQABAC1CAQECIAAAAwCQAAADAAADAFqgBAIAgE2WSpJMrm4YEAwIAAADAAgAAAMACECiAAEAB0QBwXK0YkA=";
+    const B64_SAMPLE_SDM = "AAAA1CgBrwWxBoXWl1VFIFc9bglgiczwYUSVR4XWcAAAAwAAAwAAAwAAAwAAAwAAEjAb2txwAAADAAADAAADAAADAAADAAADAAADAAADA6IAAAMAAAMAAAMAAAMAAAMAAAMAAAMAAAMAJeAAAAMAAAMAAAMAAAMAAAMAAAMAAAMACCgAAAMAAAMAAAMAAAMAAAMAAAMAAArYAAADAAADAAADAAADAAADAAADAAFBAAADAAADAAADAAADAAADAAADAAr4AAADAAADAAADAAADAAADAAADACkg";
+    const B64_FTYP_16P = "AAAANGZ0eXBoZWljAAAAAG1pZjFNaUhCTWlIQWhlaXhNaUhFTWlQcmhlaWNtaWFmdG1hcA==";
+    const B64_STYLES_PREFIX = "YnBsaXN0MDDfEBEBAgMEBQYHCAkKCwwNDg8QERITFBUWFxg/RERFRUZHSDZNUTBRMVEyUTNRNFE1UTZRN1FjUWRRZVFmUWdRaFFpUWpRaxAPTxHKgA==";
+    const B64_IDENT_60B = "AAAAAAAAADwAAAAAAAAAPAAAAAAAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    const B64_STYLES_SUFFIX = "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ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOAA4ADgAOBAgEkwwMGgjQAMzMzMzMzPTSUpLTDYtVEdhaW5fEBBPcmlnaW5hbFJhbmdlTWF4XxAQT3JpZ2luYWxSYW5nZU1pbiNAIAAAAAAAAAgACAAtAC8AMQAzADUANwA5ADsAPQA/AEEAQwBFAEcASQBLAE0ATwBRytXK1szezOfM6cz+zQ3NGc05zVDNYs2Iza/N0834zhPOJs4xzjnOPc5BzkXOSc5NzlHOXM5lznjOgc6KzpPOnM6lzq7Ot87AztPO5s75zwzPH88yz0XPWM9fz2vPgs+Mz5XXmdeb16DXqdew17XXyNfb1+QAAAAAAAACAQAAAAAAAABOAAAAAAAAAAAAAAAAAADX5Q==";
+
+    function b64ToBytes(b64) {
+      const bin = atob(b64);
+      const out = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out;
+    }
+
+    function concatBytes(arrays) {
+      let total = 0;
+      for (const a of arrays) total += a.length;
+      const out = new Uint8Array(total);
+      let off = 0;
+      for (const a of arrays) {
+        out.set(a, off);
+        off += a.length;
+      }
+      return out;
+    }
+
+    function asciiBytes(str, nullTerm = false) {
+      const len = str.length + (nullTerm ? 1 : 0);
+      const out = new Uint8Array(len);
+      for (let i = 0; i < str.length; i++) out[i] = str.charCodeAt(i);
+      if (nullTerm) out[str.length] = 0;
+      return out;
+    }
+
+    function readAscii(u8, off, len) {
+      let s = "";
+      for (let i = 0; i < len && off + i < u8.length; i++) {
+        const c = u8[off + i];
+        if (c === 0) break;
+        s += String.fromCharCode(c);
+      }
+      return s;
+    }
+
+    function packU16BE(v) {
+      const b = new Uint8Array(2);
+      new DataView(b.buffer).setUint16(0, v, false);
+      return b;
+    }
+
+    function packU32BE(v) {
+      const b = new Uint8Array(4);
+      new DataView(b.buffer).setUint32(0, v >>> 0, false);
+      return b;
+    }
+
+    function packI32BE(v) {
+      const b = new Uint8Array(4);
+      new DataView(b.buffer).setInt32(0, v | 0, false);
+      return b;
+    }
+
+    function buildStylesBplist() {
+      const prefix = b64ToBytes(B64_STYLES_PREFIX);
+      const block60 = b64ToBytes(B64_IDENT_60B);
+      const suffix = b64ToBytes(B64_STYLES_SUFFIX);
+      const parts = [prefix];
+      for (let i = 0; i < 864; i++) parts.push(block60);
+      parts.push(suffix);
+      return concatBytes(parts);
+    }
+
+    const TYPE_SIZES = { 1:1, 2:1, 3:2, 4:4, 5:8, 7:1, 9:4, 10:8, 16:8 };
+
+    function parseIFD(tiff, off, littleEndian = false) {
+      const dv = new DataView(tiff.buffer, tiff.byteOffset, tiff.byteLength);
+      if (off + 2 > tiff.length) return { entries: [], nextIfd: 0 };
+      const cnt = dv.getUint16(off, littleEndian);
+      const entries = [];
+      let pos = off + 2;
+      for (let i = 0; i < cnt; i++) {
+        if (pos + 12 > tiff.length) break;
+        const tag = dv.getUint16(pos, littleEndian);
+        const tp = dv.getUint16(pos + 2, littleEndian);
+        const count = dv.getUint32(pos + 4, littleEndian);
+        const totalSz = (TYPE_SIZES[tp] || 1) * count;
+        let dataBytes;
+        if (totalSz <= 4) {
+          dataBytes = tiff.slice(pos + 8, pos + 8 + totalSz);
+        } else {
+          const ptr = dv.getUint32(pos + 8, littleEndian);
+          dataBytes = tiff.slice(ptr, ptr + totalSz);
+        }
+        entries.push({ tag, tp, count, data: dataBytes });
+        pos += 12;
+      }
+      const nextIfd = (pos + 4 <= tiff.length) ? dv.getUint32(pos, littleEndian) : 0;
+      return { entries, nextIfd };
+    }
+
+    function serializeIFD(entries, startOffset, nextIfd = 0) {
+      const sorted = [...entries].sort((a, b) => a.tag - b.tag);
+      const cnt = sorted.length;
+      const headerLen = 2 + cnt * 12 + 4;
+      const dirBuf = new Uint8Array(headerLen);
+      const dirDv = new DataView(dirBuf.buffer);
+      dirDv.setUint16(0, cnt, false);
+
+      const dataChunks = [];
+      let dataLen = 0;
+      if ((startOffset + headerLen) % 2 === 1) {
+        dataChunks.push(new Uint8Array([0]));
+        dataLen += 1;
+      }
+
+      let pos = 2;
+      for (const e of sorted) {
+        const totalSz = (TYPE_SIZES[e.tp] || 1) * e.count;
+        dirDv.setUint16(pos, e.tag, false);
+        dirDv.setUint16(pos + 2, e.tp, false);
+        dirDv.setUint32(pos + 4, e.count, false);
+        if (totalSz <= 4) {
+          for (let k = 0; k < 4; k++) {
+            dirBuf[pos + 8 + k] = k < e.data.length ? e.data[k] : 0;
+          }
+        } else {
+          const ptr = startOffset + headerLen + dataLen;
+          dirDv.setUint32(pos + 8, ptr, false);
+          dataChunks.push(e.data);
+          dataLen += e.data.length;
+          if (dataLen % 2 === 1) {
+            dataChunks.push(new Uint8Array([0]));
+            dataLen += 1;
+          }
+        }
+        pos += 12;
+      }
+      dirDv.setUint32(pos, nextIfd, false);
+      return concatBytes([dirBuf, ...dataChunks]);
+    }
+
+    // Rewrite TIFF payload (MM/II header at offset 0) to disguise as iPhone 16 Pro
+    function patchTiffPayload(tiffBytes) {
+      const isLE = (tiffBytes[0] === 0x49 && tiffBytes[1] === 0x49);
+      const dv = new DataView(tiffBytes.buffer, tiffBytes.byteOffset, tiffBytes.byteLength);
+      const ifd0Off = dv.getUint32(4, isLE);
+      const ifd0 = parseIFD(tiffBytes, ifd0Off, isLE).entries;
+
+      let origModel = "未知机型";
+      let origLens = "未知镜头";
+      let origSensor = "无";
+      let origDate = "保留原时间";
+      let gpsCount = 0;
+
+      let exifPtr = 0;
+      let gpsPtr = 0;
+      for (const e of ifd0) {
+        if (e.tag === 0x0110) origModel = readAscii(e.data, 0, e.data.length);
+        if (e.tag === 0x0132) origDate = readAscii(e.data, 0, e.data.length);
+        if (e.tag === 0x8769 && e.data.length >= 4) {
+          exifPtr = new DataView(e.data.buffer, e.data.byteOffset, 4).getUint32(0, isLE);
+        }
+        if (e.tag === 0x8825 && e.data.length >= 4) {
+          gpsPtr = new DataView(e.data.buffer, e.data.byteOffset, 4).getUint32(0, isLE);
+        }
+      }
+
+      const eifd = exifPtr ? parseIFD(tiffBytes, exifPtr, isLE).entries : [];
+      const gpsIfd = gpsPtr ? parseIFD(tiffBytes, gpsPtr, isLE).entries : [];
+      gpsCount = gpsIfd.length;
+
+      // Convert any little-endian multi-byte values if source was little-endian
+      function toBigEndianEntry(e) {
+        if (!isLE || (TYPE_SIZES[e.tp] || 1) === 1) return { ...e };
+        const unit = TYPE_SIZES[e.tp];
+        const out = new Uint8Array(e.data.length);
+        const srcDv = new DataView(e.data.buffer, e.data.byteOffset, e.data.byteLength);
+        const dstDv = new DataView(out.buffer);
+        for (let i = 0; i < e.count; i++) {
+          if (unit === 2) {
+            dstDv.setUint16(i * 2, srcDv.getUint16(i * 2, true), false);
+          } else if (unit === 4) {
+            dstDv.setUint32(i * 4, srcDv.getUint32(i * 4, true), false);
+          } else if (unit === 8) {
+            dstDv.setUint32(i * 8, srcDv.getUint32(i * 8, true), false);
+            dstDv.setUint32(i * 8 + 4, srcDv.getUint32(i * 8 + 4, true), false);
+          }
+        }
+        return { tag: e.tag, tp: e.tp, count: e.count, data: out };
+      }
+
+      const newIfd0 = [];
+      let hasModel = false, hasHost = false, hasMake = false, hasExifPtr = false;
+      for (const rawE of ifd0) {
+        const e = toBigEndianEntry(rawE);
+        if (e.tag === 0x010f) {
+          hasMake = true;
+          newIfd0.push(e);
+        } else if (e.tag === 0x0110) {
+          hasModel = true;
+          const s = asciiBytes("iPhone 16 Pro", true);
+          newIfd0.push({ tag: 0x0110, tp: 2, count: s.length, data: s });
+        } else if (e.tag === 0x013c) {
+          hasHost = true;
+          const s = asciiBytes("iPhone 16 Pro", true);
+          newIfd0.push({ tag: 0x013c, tp: 2, count: s.length, data: s });
+        } else if (e.tag === 0x8769) {
+          hasExifPtr = true;
+          newIfd0.push({ tag: 0x8769, tp: 4, count: 1, data: packU32BE(0) });
+        } else {
+          newIfd0.push(e);
+        }
+      }
+      if (!hasMake) {
+        const s = asciiBytes("Apple", true);
+        newIfd0.push({ tag: 0x010f, tp: 2, count: s.length, data: s });
+      }
+      if (!hasModel) {
+        const s = asciiBytes("iPhone 16 Pro", true);
+        newIfd0.push({ tag: 0x0110, tp: 2, count: s.length, data: s });
+      }
+      if (!hasHost) {
+        const s = asciiBytes("iPhone 16 Pro", true);
+        newIfd0.push({ tag: 0x013c, tp: 2, count: s.length, data: s });
+      }
+      if (!hasExifPtr) {
+        newIfd0.push({ tag: 0x8769, tp: 4, count: 1, data: packU32BE(0) });
+      }
+
+      // Patch or build Apple MakerNote (0x927c)
+      let mnRaw = null;
+      for (const e of eifd) {
+        if (e.tag === 0xa434) origLens = readAscii(e.data, 0, e.data.length);
+        if (e.tag === 0x927c) mnRaw = e.data;
+      }
+
+      const b0054 = b64ToBytes(B64_0054);
+      const b005a = b64ToBytes(B64_005A);
+      let newMnEntries = [];
+      if (mnRaw && mnRaw.length > 16 && readAscii(mnRaw, 0, 9) === "Apple iOS") {
+        const mnLE = (mnRaw[12] === 0x49 && mnRaw[13] === 0x49);
+        const parsedMn = parseIFD(mnRaw, 14, mnLE).entries;
+        for (const rawMe of parsedMn) {
+          const me = (mnLE === isLE) ? toBigEndianEntry(rawMe) : rawMe;
+          if (me.tag === 0x0040 || me.tag === 0x0054 || me.tag === 0x005a) {
+            continue;
+          } else if (me.tag === 0x0001) {
+            newMnEntries.push({ tag: 0x0001, tp: 9, count: 1, data: packI32BE(16) });
+          } else if (me.tag === 0x001a) {
+            origSensor = readAscii(me.data, 0, me.data.length);
+            const q = asciiBytes("q750n", true);
+            newMnEntries.push({ tag: 0x001a, tp: 2, count: q.length, data: q });
+          } else if (me.tag === 0x0052) {
+            newMnEntries.push({ tag: 0x0052, tp: 9, count: 1, data: packI32BE(5) });
+          } else if (me.tag === 0x0058) {
+            newMnEntries.push({ tag: 0x0058, tp: 9, count: 1, data: packI32BE(2307) });
+          } else if (me.tag === 0x0060) {
+            newMnEntries.push({ tag: 0x0060, tp: 9, count: 1, data: packI32BE(16916) });
+          } else {
+            newMnEntries.push(me);
+          }
+        }
+      } else {
+        const q = asciiBytes("q750n", true);
+        newMnEntries.push({ tag: 0x0001, tp: 9, count: 1, data: packI32BE(16) });
+        newMnEntries.push({ tag: 0x001a, tp: 2, count: q.length, data: q });
+        newMnEntries.push({ tag: 0x0052, tp: 9, count: 1, data: packI32BE(5) });
+        newMnEntries.push({ tag: 0x0058, tp: 9, count: 1, data: packI32BE(2307) });
+        newMnEntries.push({ tag: 0x0060, tp: 9, count: 1, data: packI32BE(16916) });
+      }
+      newMnEntries.push({ tag: 0x0054, tp: 7, count: b0054.length, data: b0054 });
+      newMnEntries.push({ tag: 0x005a, tp: 7, count: b005a.length, data: b005a });
+
+      const mnHeader = new Uint8Array([65,112,112,108,101,32,105,79,83,0,0,1,77,77]);
+      const mnBody = serializeIFD(newMnEntries, 14, 0);
+      const newMnBytes = concatBytes([mnHeader, mnBody]);
+
+      const newLensStr = asciiBytes("iPhone 16 Pro back triple camera 6.765mm f/1.78", true);
+      const newEifd = [];
+      let hasLens = false, hasMn = false;
+      for (const rawE of eifd) {
+        const e = toBigEndianEntry(rawE);
+        if (e.tag === 0xa434) {
+          hasLens = true;
+          newEifd.push({ tag: 0xa434, tp: 2, count: newLensStr.length, data: newLensStr });
+        } else if (e.tag === 0x927c) {
+          hasMn = true;
+          newEifd.push({ tag: 0x927c, tp: 7, count: newMnBytes.length, data: newMnBytes });
+        } else {
+          newEifd.push(e);
+        }
+      }
+      if (!hasLens) {
+        newEifd.push({ tag: 0xa434, tp: 2, count: newLensStr.length, data: newLensStr });
+      }
+      if (!hasMn) {
+        newEifd.push({ tag: 0x927c, tp: 7, count: newMnBytes.length, data: newMnBytes });
+      }
+
+      const newGpsIfd = gpsIfd.map(toBigEndianEntry);
+
+      // Two-pass layout of big-endian TIFF
+      const dummyIfd0 = serializeIFD(newIfd0, 8, 0);
+      let exifIfdOff = 8 + dummyIfd0.length;
+      if (exifIfdOff % 2 === 1) exifIfdOff += 1;
+      const exifIfdBytes = serializeIFD(newEifd, exifIfdOff, 0);
+
+      let gpsIfdOff = exifIfdOff + exifIfdBytes.length;
+      if (gpsIfdOff % 2 === 1) gpsIfdOff += 1;
+      const gpsIfdBytes = newGpsIfd.length > 0 ? serializeIFD(newGpsIfd, gpsIfdOff, 0) : new Uint8Array(0);
+
+      for (const e of newIfd0) {
+        if (e.tag === 0x8769) e.data = packU32BE(exifIfdOff);
+        if (e.tag === 0x8825 && newGpsIfd.length > 0) e.data = packU32BE(gpsIfdOff);
+      }
+      const finalIfd0 = serializeIFD(newIfd0, 8, 0);
+
+      const tiffHeader = new Uint8Array([0x4d, 0x4d, 0x00, 0x2a, 0x00, 0x00, 0x00, 0x08]);
+      const pad1 = (exifIfdOff > 8 + finalIfd0.length) ? new Uint8Array(exifIfdOff - (8 + finalIfd0.length)) : new Uint8Array(0);
+      const pad2 = (newGpsIfd.length > 0 && gpsIfdOff > exifIfdOff + exifIfdBytes.length) ? new Uint8Array(gpsIfdOff - (exifIfdOff + exifIfdBytes.length)) : new Uint8Array(0);
+
+      const finalTiff = concatBytes([tiffHeader, finalIfd0, pad1, exifIfdBytes, pad2, gpsIfdBytes]);
+      return {
+        tiffBytes: finalTiff,
+        summary: {
+          origModel,
+          newModel: "iPhone 16 Pro",
+          origLens,
+          newLens: "iPhone 16 Pro back triple camera 6.765mm f/1.78",
+          origSensor,
+          newSensor: "q750n",
+          origDate,
+          gpsCount
+        }
+      };
+    }
+
+    // Parse & patch full HEIF/HEIC container (ftyp + meta + mdat)
+    function patchHeicBuffer(u8) {
+      const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+      let pos = 0;
+      let metaOff = -1, metaSz = 0;
+      while (pos + 8 <= u8.length) {
+        let sz = dv.getUint32(pos, false);
+        const tp = readAscii(u8, pos + 4, 4);
+        let hdrLen = 8;
+        if (sz === 1) {
+          sz = Number(dv.getBigUint64(pos + 8, false));
+          hdrLen = 16;
+        } else if (sz === 0) {
+          sz = u8.length - pos;
+        }
+        if (tp === "meta") {
+          metaOff = pos;
+          metaSz = sz;
+          break;
+        }
+        pos += sz;
+      }
+      if (metaOff < 0) throw new Error("未找到 HEIF meta 盒");
+
+      // Parse child boxes inside meta (starts at metaOff + 12)
+      const metaBoxes = {};
+      let mpos = metaOff + 12;
+      const mend = metaOff + metaSz;
+      while (mpos + 8 <= mend) {
+        const bsz = dv.getUint32(mpos, false);
+        const btp = readAscii(u8, mpos + 4, 4);
+        metaBoxes[btp] = { off: mpos, sz: bsz, raw: u8.slice(mpos, mpos + bsz) };
+        mpos += bsz;
+      }
+
+      const pitmRaw = metaBoxes["pitm"].raw;
+      const pitmVer = pitmRaw[8];
+      const primaryId = (pitmVer === 0)
+        ? new DataView(pitmRaw.buffer, pitmRaw.byteOffset, pitmRaw.byteLength).getUint16(12, false)
+        : new DataView(pitmRaw.buffer, pitmRaw.byteOffset, pitmRaw.byteLength).getUint32(12, false);
+
+      // Parse iinf to find item IDs, types, maxId, tmapId, exifId
+      const iinfRaw = metaBoxes["iinf"].raw;
+      const iinfDv = new DataView(iinfRaw.buffer, iinfRaw.byteOffset, iinfRaw.byteLength);
+      const iinfVer = iinfRaw[8];
+      let ipos = 12;
+      const entryCount = (iinfVer === 0) ? iinfDv.getUint16(ipos, false) : iinfDv.getUint32(ipos, false);
+      ipos += (iinfVer === 0) ? 2 : 4;
+      const origInfeSlices = iinfRaw.slice(ipos);
+
+      let maxItemId = 0;
+      let tmapId = 0;
+      let exifId = 0;
+      let hasStylesUri = false;
+      let scanPos = ipos;
+      for (let i = 0; i < entryCount && scanPos + 8 <= iinfRaw.length; i++) {
+        const isz = iinfDv.getUint32(scanPos, false);
+        const iver = iinfRaw[scanPos + 8];
+        if (iver === 2) {
+          const iid = iinfDv.getUint16(scanPos + 12, false);
+          const itype = readAscii(iinfRaw, scanPos + 16, 4);
+          if (iid > maxItemId) maxItemId = iid;
+          if (itype === "tmap") tmapId = iid;
+          if (itype === "Exif") exifId = iid;
+          if (itype === "uri ") {
+            const restStr = readAscii(iinfRaw, scanPos + 20, isz - 20);
+            if (restStr.includes("styles")) hasStylesUri = true;
+          }
+        }
+        scanPos += isz;
+      }
+
+      // Parse iref to find thumbnail item ID (thmb -> primaryId)
+      const irefRaw = metaBoxes["iref"].raw;
+      const irefDv = new DataView(irefRaw.buffer, irefRaw.byteOffset, irefRaw.byteLength);
+      let rpos = 12;
+      let thumbId = 0;
+      while (rpos + 8 <= irefRaw.length) {
+        const rsz = irefDv.getUint32(rpos, false);
+        const rtp = readAscii(irefRaw, rpos + 4, 4);
+        const fromId = irefDv.getUint16(rpos + 8, false);
+        if (rtp === "thmb") thumbId = fromId;
+        rpos += rsz;
+      }
+
+      // Parse iprp -> ipco & ipma
+      const iprpRaw = metaBoxes["iprp"].raw;
+      const iprpDv = new DataView(iprpRaw.buffer, iprpRaw.byteOffset, iprpRaw.byteLength);
+      let ppos = 8;
+      let ipcoRaw = null, ipmaRaw = null;
+      while (ppos + 8 <= iprpRaw.length) {
+        const psz = iprpDv.getUint32(ppos, false);
+        const ptp = readAscii(iprpRaw, ppos + 4, 4);
+        if (ptp === "ipco") ipcoRaw = iprpRaw.slice(ppos, ppos + psz);
+        if (ptp === "ipma") ipmaRaw = iprpRaw.slice(ppos, ppos + psz);
+        ppos += psz;
+      }
+
+      // Count existing properties in ipco and find ispe(512x512), irot, pixi(10,10,10), and thumb's properties
+      const ipcoProps = [];
+      let cpos = 8;
+      const ipcoDv = new DataView(ipcoRaw.buffer, ipcoRaw.byteOffset, ipcoRaw.byteLength);
+      let idxIspe512 = 0, idxIrot = 0, idxPixi10 = 0;
+      while (cpos + 8 <= ipcoRaw.length) {
+        const csz = ipcoDv.getUint32(cpos, false);
+        const ctp = readAscii(ipcoRaw, cpos + 4, 4);
+        const propBox = ipcoRaw.slice(cpos, cpos + csz);
+        ipcoProps.push(propBox);
+        const pIdx = ipcoProps.length;
+        if (ctp === "ispe" && csz >= 20) {
+          const w = ipcoDv.getUint32(cpos + 12, false);
+          const h = ipcoDv.getUint32(cpos + 16, false);
+          if (w === 512 && h === 512 && !idxIspe512) idxIspe512 = pIdx;
+        } else if (ctp === "irot" && !idxIrot) {
+          idxIrot = pIdx;
+        } else if (ctp === "pixi" && csz >= 16 && propBox[13] === 10) {
+          idxPixi10 = pIdx;
+        }
+        cpos += csz;
+      }
+
+      // Parse ipma to get thumbId's existing property associations (for reuse-thumbnail linearthumbnail)
+      const ipmaDv = new DataView(ipmaRaw.buffer, ipmaRaw.byteOffset, ipmaRaw.byteLength);
+      const ipmaEntryCount = ipmaDv.getUint32(12, false);
+      let mapos = 16;
+      let thumbAssocs = [];
+      for (let i = 0; i < ipmaEntryCount && mapos + 3 <= ipmaRaw.length; i++) {
+        const iid = ipmaDv.getUint16(mapos, false);
+        const acnt = ipmaRaw[mapos + 2];
+        mapos += 3;
+        const assocs = [];
+        for (let j = 0; j < acnt; j++) {
+          const b = ipmaRaw[mapos++];
+          assocs.push({ idx: b & 0x7f, essential: (b & 0x80) !== 0 });
+        }
+        if (iid === thumbId) thumbAssocs = assocs;
+      }
+
+      // Parse iloc
+      const ilocRaw = metaBoxes["iloc"].raw;
+      const ilocDv = new DataView(ilocRaw.buffer, ilocRaw.byteOffset, ilocRaw.byteLength);
+      const ilocVer = ilocRaw[8];
+      const offSz = (ilocRaw[12] >> 4) & 0x0f;
+      const lenSz = ilocRaw[12] & 0x0f;
+      const baseSz = (ilocRaw[13] >> 4) & 0x0f;
+      const idxSz = (ilocVer === 1 || ilocVer === 2) ? (ilocRaw[13] & 0x0f) : 0;
+      let lpos = 14;
+      const ilocCount = (ilocVer < 2) ? ilocDv.getUint16(lpos, false) : ilocDv.getUint32(lpos, false);
+      lpos += (ilocVer < 2) ? 2 : 4;
+
+      const ilocItems = [];
+      for (let i = 0; i < ilocCount; i++) {
+        const iid = (ilocVer < 2) ? ilocDv.getUint16(lpos, false) : ilocDv.getUint32(lpos, false);
+        lpos += (ilocVer < 2) ? 2 : 4;
+        const cm = (ilocVer === 1 || ilocVer === 2) ? (ilocDv.getUint16(lpos, false) & 0x0f) : 0;
+        if (ilocVer === 1 || ilocVer === 2) lpos += 2;
+        const dref = ilocDv.getUint16(lpos, false);
+        lpos += 2;
+        let baseOff = 0;
+        for (let b = 0; b < baseSz; b++) baseOff = (baseOff * 256) + ilocRaw[lpos++];
+        const extCnt = ilocDv.getUint16(lpos, false);
+        lpos += 2;
+        const exts = [];
+        for (let e = 0; e < extCnt; e++) {
+          lpos += idxSz;
+          let eOff = 0, eLen = 0;
+          for (let b = 0; b < offSz; b++) eOff = (eOff * 256) + ilocRaw[lpos++];
+          for (let b = 0; b < lenSz; b++) eLen = (eLen * 256) + ilocRaw[lpos++];
+          exts.push({ off: baseOff + eOff, len: eLen });
+        }
+        ilocItems.push({ iid, cm, dref, exts });
+      }
+
+      // Extract & patch Exif item
+      const exifItem = ilocItems.find(x => x.iid === exifId);
+      if (!exifItem) throw new Error("未找到 HEIF Exif 数据项");
+      const origExifBytes = u8.slice(exifItem.exts[0].off, exifItem.exts[0].off + exifItem.exts[0].len);
+      const tiffStart = 4 + new DataView(origExifBytes.buffer, origExifBytes.byteOffset, 4).getUint32(0, false);
+      const patchedExif = patchTiffPayload(origExifBytes.slice(tiffStart));
+      const newExifBlock = concatBytes([
+        new Uint8Array([0, 0, 0, 6, 0x45, 0x78, 0x69, 0x66, 0, 0]),
+        patchedExif.tiffBytes
+      ]);
+
+      // If photo already has styles URI, just update Exif item in-place
+      const stylesBplist = buildStylesBplist();
+      const sampleSdm = b64ToBytes(B64_SAMPLE_SDM);
+
+      // Assign new item IDs for linearthumbnail, 48 styledeltamap tiles, styledeltamap grid, and styles URI
+      const linThumbId = maxItemId + 1;
+      const firstTileId = maxItemId + 2;
+      const sdmGridId = firstTileId + 48;
+      const stylesUriId = sdmGridId + 1;
+
+      function makeInfe(iid, itype, restBytes) {
+        const len = 12 + 4 + 4 + restBytes.length;
+        const hdr = new Uint8Array(12);
+        new DataView(hdr.buffer).setUint32(0, len, false);
+        hdr.set([0x69, 0x6e, 0x66, 0x65, 2, 0, 0, 0], 4);
+        return concatBytes([hdr, packU16BE(iid), packU16BE(0), asciiBytes(itype, false), restBytes]);
+      }
+
+      const addedInfes = [makeInfe(linThumbId, "hvc1", new Uint8Array([0]))];
+      for (let t = 0; t < 48; t++) {
+        addedInfes.push(makeInfe(firstTileId + t, "hvc1", new Uint8Array([0])));
+      }
+      addedInfes.push(makeInfe(sdmGridId, "grid", new Uint8Array([0])));
+      addedInfes.push(makeInfe(stylesUriId, "uri ", asciiBytes("metadata\0tag:apple.com,2023:photo:metadata:styles", true)));
+
+      const newInfeCount = entryCount + addedInfes.length;
+      const iinfBody = concatBytes([
+        new Uint8Array([0, 0, 0, 0]),
+        packU16BE(newInfeCount),
+        origInfeSlices,
+        ...addedInfes
+      ]);
+      const newIinfBox = concatBytes([packU32BE(8 + iinfBody.length), asciiBytes("iinf"), iinfBody]);
+
+      // Append new iref entries
+      function makeIref(rtp, fromId, toIds) {
+        const len = 8 + 4 + toIds.length * 2;
+        const parts = [packU32BE(len), asciiBytes(rtp), packU16BE(fromId), packU16BE(toIds.length)];
+        for (const tid of toIds) parts.push(packU16BE(tid));
+        return concatBytes(parts);
+      }
+      const targetRefs = tmapId ? [primaryId, tmapId] : [primaryId];
+      const sdmTileIds = [];
+      for (let t = 0; t < 48; t++) sdmTileIds.push(firstTileId + t);
+
+      const newIrefChildren = concatBytes([
+        irefRaw.slice(12),
+        makeIref("auxl", linThumbId, targetRefs),
+        makeIref("dimg", sdmGridId, sdmTileIds),
+        makeIref("auxl", sdmGridId, targetRefs),
+        makeIref("cdsc", stylesUriId, targetRefs)
+      ]);
+      const newIrefBox = concatBytes([packU32BE(12 + newIrefChildren.length), asciiBytes("iref"), new Uint8Array([0,0,0,0]), newIrefChildren]);
+
+      // Append new ipco properties (always include explicit 512x512 ispe & 10-bit pixi for 24MP photos!)
+      const propAuxLin = b64ToBytes(B64_AUX_LIN);
+      const propColrSdm = b64ToBytes(B64_COLR_SDM);
+      const propIspe4096 = b64ToBytes(B64_ISPE_4096);
+      const propAuxSdm = b64ToBytes(B64_AUX_SDM);
+      const propHvccSdm = b64ToBytes(B64_HVCC_SDM);
+      const propIspe512 = new Uint8Array([0,0,0,20, 0x69,0x73,0x70,0x65, 0,0,0,0, 0,0,2,0, 0,0,2,0]);
+      const propPixi10 = new Uint8Array([0,0,0,16, 0x70,0x69,0x78,0x69, 0,0,0,0, 3, 10,10,10]);
+
+      const extraProps = [propAuxLin, propColrSdm, propIspe4096, propAuxSdm, propHvccSdm];
+      const basePropIdx = ipcoProps.length;
+      const idxAuxLin = basePropIdx + 1;
+      const idxColrSdm = basePropIdx + 2;
+      const idxIspe4096 = basePropIdx + 3;
+      const idxAuxSdm = basePropIdx + 4;
+      const idxHvccSdm = basePropIdx + 5;
+      let nextPropIdx = basePropIdx + 5;
+      let finalIspe512 = idxIspe512;
+      if (!finalIspe512) {
+        extraProps.push(propIspe512);
+        nextPropIdx += 1;
+        finalIspe512 = nextPropIdx;
+      }
+      let finalPixi10 = idxPixi10;
+      if (!finalPixi10) {
+        extraProps.push(propPixi10);
+        nextPropIdx += 1;
+        finalPixi10 = nextPropIdx;
+      }
+
+      const newIpcoBody = concatBytes([
+        ipcoRaw.slice(8),
+        ...extraProps
+      ]);
+      const newIpcoBox = concatBytes([packU32BE(8 + newIpcoBody.length), asciiBytes("ipco"), newIpcoBody]);
+
+      // Build ipma entries
+      function makeIpmaEntry(iid, assocs) {
+        const b = new Uint8Array(3 + assocs.length);
+        new DataView(b.buffer).setUint16(0, iid, false);
+        b[2] = assocs.length;
+        for (let i = 0; i < assocs.length; i++) {
+          b[3 + i] = (assocs[i].essential ? 0x80 : 0x00) | (assocs[i].idx & 0x7f);
+        }
+        return b;
+      }
+
+      // ISO/IEC 23008-12 requires transformative property irot to be LAST in ipma!
+      const nonIrotAssocs = thumbAssocs.filter(a => a.idx !== idxIrot);
+      const irotAssocs = thumbAssocs.filter(a => a.idx === idxIrot);
+      const linAssocs = [...nonIrotAssocs, { idx: idxAuxLin, essential: true }, ...irotAssocs];
+      const addedIpma = [makeIpmaEntry(linThumbId, linAssocs)];
+      for (const tid of sdmTileIds) {
+        addedIpma.push(makeIpmaEntry(tid, [
+          { idx: finalIspe512, essential: true },
+          { idx: idxColrSdm, essential: true },
+          { idx: idxHvccSdm, essential: true }
+        ]));
+      }
+      addedIpma.push(makeIpmaEntry(sdmGridId, [
+        { idx: idxColrSdm, essential: true },
+        { idx: idxIspe4096, essential: false },
+        { idx: finalPixi10, essential: false },
+        { idx: idxAuxSdm, essential: true },
+        { idx: idxIrot || 4, essential: true }
+      ]));
+
+      const newIpmaCount = ipmaEntryCount + addedIpma.length;
+      const newIpmaBody = concatBytes([
+        new Uint8Array([0, 0, 0, 0]),
+        packU32BE(newIpmaCount),
+        ipmaRaw.slice(16),
+        ...addedIpma
+      ]);
+      const newIpmaBox = concatBytes([packU32BE(8 + newIpmaBody.length), asciiBytes("ipma"), newIpmaBody]);
+      const newIprpBox = concatBytes([packU32BE(8 + newIpcoBox.length + newIpmaBox.length), asciiBytes("iprp"), newIpcoBox, newIpmaBox]);
+
+      // idat: append 8-byte grid descriptor for sdmGridId
+      const origIdatPayload = metaBoxes["idat"] ? metaBoxes["idat"].raw.slice(8) : new Uint8Array(0);
+      const sdmGridOffsetInIdat = origIdatPayload.length;
+      const sdmGridDesc = new Uint8Array([0x00, 0x00, 0x05, 0x07, 0x10, 0x00, 0x0c, 0x00]);
+      const newIdatPayload = concatBytes([origIdatPayload, sdmGridDesc]);
+      const newIdatBox = concatBytes([packU32BE(8 + newIdatPayload.length), asciiBytes("idat"), newIdatPayload]);
+
+      // Build mdat payload and iloc records
+      const mdatChunks = [];
+      let mdatRelOff = 0;
+      const finalExtents = new Map();
+
+      function pushMdat(iid, bytes) {
+        finalExtents.set(iid, { cm: 0, off: mdatRelOff, len: bytes.length });
+        mdatChunks.push(bytes);
+        mdatRelOff += bytes.length;
+      }
+
+      // Place styles bplist and patched Exif at the beginning of mdat (matching native 16 Pro layout)
+      pushMdat(stylesUriId, stylesBplist);
+      pushMdat(exifId, newExifBlock);
+
+      let thumbBitstream = null;
+      for (const item of ilocItems) {
+        if (item.cm === 1) {
+          finalExtents.set(item.iid, { cm: 1, off: item.exts[0].off, len: item.exts[0].len });
+        } else if (item.iid === exifId) {
+          continue;
+        } else {
+          const parts = item.exts.map(ex => u8.slice(ex.off, ex.off + ex.len));
+          const merged = concatBytes(parts);
+          if (item.iid === thumbId) thumbBitstream = merged;
+          pushMdat(item.iid, merged);
+        }
+      }
+
+      // Write dedicated non-overlapping copy of thumbnail bitstream for linearthumbnail
+      pushMdat(linThumbId, thumbBitstream || sampleSdm);
+
+      // Write 48 separate non-overlapping styledeltamap tile extents in mdat
+      for (const tid of sdmTileIds) {
+        pushMdat(tid, sampleSdm);
+      }
+
+      // Grid descriptor in idat
+      finalExtents.set(sdmGridId, { cm: 1, off: sdmGridOffsetInIdat, len: 8 });
+
+      const sortedIids = Array.from(finalExtents.keys()).sort((a, b) => a - b);
+      const ilocBoxSize = 16 + sortedIids.length * 16;
+
+      const ftypBox = b64ToBytes(B64_FTYP_16P);
+      const grplBox = metaBoxes["grpl"] ? metaBoxes["grpl"].raw : new Uint8Array(0);
+      const metaPreIloc = concatBytes([
+        metaBoxes["hdlr"].raw,
+        metaBoxes["dinf"].raw,
+        metaBoxes["pitm"].raw,
+        newIinfBox,
+        newIrefBox,
+        newIprpBox,
+        grplBox,
+        newIdatBox
+      ]);
+
+      const newMetaSize = 12 + metaPreIloc.length + ilocBoxSize;
+      const mdatStart = ftypBox.length + newMetaSize;
+      const mdatDataStart = mdatStart + 16;
+
+      const ilocBuf = new Uint8Array(ilocBoxSize);
+      const ilocOutDv = new DataView(ilocBuf.buffer);
+      ilocOutDv.setUint32(0, ilocBoxSize, false);
+      ilocBuf.set([0x69, 0x6c, 0x6f, 0x63, 1, 0, 0, 0, 0x44, 0x00], 4);
+      ilocOutDv.setUint16(14, sortedIids.length, false);
+
+      let wpos = 16;
+      for (const iid of sortedIids) {
+        const info = finalExtents.get(iid);
+        const absOff = (info.cm === 0) ? (mdatDataStart + info.off) : info.off;
+        ilocOutDv.setUint16(wpos, iid, false);
+        ilocOutDv.setUint16(wpos + 2, info.cm, false);
+        ilocOutDv.setUint16(wpos + 4, 0, false);
+        ilocOutDv.setUint16(wpos + 6, 1, false);
+        ilocOutDv.setUint32(wpos + 8, absOff >>> 0, false);
+        ilocOutDv.setUint32(wpos + 12, info.len >>> 0, false);
+        wpos += 16;
+      }
+
+      const newMetaBox = concatBytes([
+        packU32BE(newMetaSize),
+        asciiBytes("meta"),
+        new Uint8Array([0, 0, 0, 0]),
+        metaPreIloc,
+        ilocBuf
+      ]);
+
+      const mdatTotalLen = 16 + mdatRelOff;
+      const mdatHdr = new Uint8Array(16);
+      const mdatHdrDv = new DataView(mdatHdr.buffer);
+      mdatHdrDv.setUint32(0, 1, false);
+      mdatHdr.set([0x6d, 0x64, 0x61, 0x74], 4);
+      mdatHdrDv.setBigUint64(8, BigInt(mdatTotalLen), false);
+
+      const finalHeic = concatBytes([ftypBox, newMetaBox, mdatHdr, ...mdatChunks]);
+      return {
+        bytes: finalHeic,
+        mime: "image/heif",
+        containerType: "HEIF / HEIC (ISO-BMFF)",
+        summary: patchedExif.summary,
+        injectedStyles: true
+      };
+    }
+
+    // Parse & patch JPEG (if iOS Photo Library picker auto-transcoded to JPEG)
+    function patchJpegBuffer(u8) {
+      const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+      let pos = 2;
+      let exifApp1Off = -1, exifApp1Len = 0;
+      while (pos + 4 <= u8.length && u8[pos] === 0xff) {
+        const marker = u8[pos + 1];
+        if (marker === 0xda || marker === 0xd9) break;
+        const segLen = dv.getUint16(pos + 2, false);
+        if (marker === 0xe1 && segLen >= 10 && readAscii(u8, pos + 4, 4) === "Exif") {
+          exifApp1Off = pos;
+          exifApp1Len = 2 + segLen;
+          break;
+        }
+        pos += 2 + segLen;
+      }
+
+      let patched;
+      if (exifApp1Off >= 0) {
+        const tiffSlice = u8.slice(exifApp1Off + 10, exifApp1Off + exifApp1Len);
+        patched = patchTiffPayload(tiffSlice);
+      } else {
+        const emptyTiff = new Uint8Array([0x4d,0x4d,0x00,0x2a,0x00,0x00,0x00,0x08,0x00,0x00,0x00,0x00,0x00,0x00]);
+        patched = patchTiffPayload(emptyTiff);
+      }
+
+      const app1Payload = concatBytes([asciiBytes("Exif\0\0"), patched.tiffBytes]);
+      const app1Seg = concatBytes([
+        new Uint8Array([0xff, 0xe1]),
+        packU16BE(2 + app1Payload.length),
+        app1Payload
+      ]);
+
+      const outBytes = (exifApp1Off >= 0)
+        ? concatBytes([u8.slice(0, exifApp1Off), app1Seg, u8.slice(exifApp1Off + exifApp1Len)])
+        : concatBytes([u8.slice(0, 2), app1Seg, u8.slice(2)]);
+
+      return {
+        bytes: outBytes,
+        mime: "image/jpeg",
+        containerType: "JPEG (iOS 图库转码流)",
+        summary: patched.summary,
+        injectedStyles: false
+      };
+    }
+
+    const pickPhotoBtn = document.getElementById("pickPhotoBtn");
+    const pickBtnText = document.getElementById("pickBtnText");
+    const photoInput = document.getElementById("photoInput");
+    const statusBadge = document.getElementById("statusBadge");
+    const photoTitle = document.getElementById("photoTitle");
+    const formatTag = document.getElementById("formatTag");
+    const emptyState = document.getElementById("emptyState");
+    const imageWrapper = document.getElementById("imageWrapper");
+    const modifiedPhotoImg = document.getElementById("modifiedPhotoImg");
+    const saveToPhotosBtn = document.getElementById("saveToPhotosBtn");
+    const metaReport = document.getElementById("metaReport");
+    const metaList = document.getElementById("metaList");
+    const procTime = document.getElementById("procTime");
+
+    let currentObjectUrl = null;
+    let latestHeifBytes = null;
+    let latestOutFilename = "IMG_16Pro.heif";
+    let latestMime = "image/heic";
+
+    async function triggerNativeSaveToPhotos() {
+      if (!latestHeifBytes) return;
+      try {
+        const shareFile = new File([latestHeifBytes], latestOutFilename, { type: latestMime });
+        if (navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+          await navigator.share({
+            files: [shareFile],
+            title: latestOutFilename
+          });
+          return;
+        }
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+      }
+      statusBadge.textContent = "请在系统弹窗选【存储图像】";
+    }
+
+    modifiedPhotoImg.addEventListener("click", triggerNativeSaveToPhotos);
+    saveToPhotosBtn.addEventListener("click", triggerNativeSaveToPhotos);
+
+    pickPhotoBtn.addEventListener("click", () => {
+      photoInput.value = "";
+      photoInput.click();
+    });
+
+    photoInput.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      statusBadge.textContent = "正在自动修改...";
+      statusBadge.className = "px-2.5 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40";
+      pickBtnText.textContent = "重新选择另一张照片";
+
+      const t0 = performance.now();
+      try {
+        const buf = await file.arrayBuffer();
+        const u8 = new Uint8Array(buf);
+        let result;
+
+        if (u8.length > 12 && readAscii(u8, 4, 4) === "ftyp") {
+          result = patchHeicBuffer(u8);
+        } else if (u8.length > 4 && u8[0] === 0xff && u8[1] === 0xd8) {
+          result = patchJpegBuffer(u8);
+        } else {
+          // Other image formats: wrap or display with synthesized summary
+          const emptyTiff = new Uint8Array([0x4d,0x4d,0x00,0x2a,0x00,0x00,0x00,0x08,0x00,0x00,0x00,0x00,0x00,0x00]);
+          const p = patchTiffPayload(emptyTiff);
+          result = {
+            bytes: u8,
+            mime: file.type || "image/png",
+            containerType: file.type || "Image",
+            summary: p.summary,
+            injectedStyles: false
+          };
+        }
+
+        const elapsed = (performance.now() - t0).toFixed(1);
+        if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+
+        latestHeifBytes = result.bytes;
+        const baseStem = (file.name || "IMG_16Pro").replace(/\.[^.]+$/, "");
+        latestOutFilename = result.injectedStyles ? (baseStem + "_16Pro.heif") : (baseStem + "_16Pro.jpg");
+        latestMime = result.injectedStyles ? "image/heic" : "image/jpeg";
+
+        const modBlob = new Blob([result.bytes], { type: latestMime });
+        currentObjectUrl = URL.createObjectURL(modBlob);
+
+        // Fallback preview only if desktop browser cannot natively render image/heic in <img>
+        modifiedPhotoImg.onerror = () => {
+          const fallbackUrl = URL.createObjectURL(file);
+          if (modifiedPhotoImg.src !== fallbackUrl) {
+            modifiedPhotoImg.src = fallbackUrl;
+          }
+        };
+        modifiedPhotoImg.src = currentObjectUrl;
+
+        emptyState.classList.add("hidden");
+        imageWrapper.classList.remove("hidden");
+        metaReport.classList.remove("hidden");
+
+        photoTitle.textContent = file.name + "（已伪装为 iPhone 16 Pro）";
+        formatTag.textContent = result.containerType + " · " + (result.bytes.length / 1024).toFixed(1) + " KB";
+        procTime.textContent = "耗时 " + elapsed + " ms";
+
+        statusBadge.textContent = "修改完成 · 已展示";
+        statusBadge.className = "px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+
+        const s = result.summary;
+        const rows = [
+          {
+            label: "机型与主机标识 (IFD0 0x0110 / 0x013c)",
+            type: "ASCII 字符串 (Type 2)",
+            before: s.origModel,
+            after: s.newModel
+          },
+          {
+            label: "镜头型号 (ExifIFD 0xa434)",
+            type: "ASCII 字符串 (Type 2)",
+            before: s.origLens,
+            after: s.newLens
+          },
+          {
+            label: "相机传感器模组代号 (MakerNote 0x001a)",
+            type: "ASCII 字符串 (Type 2)",
+            before: s.origSensor,
+            after: s.newSensor
+          },
+          {
+            label: "新一代摄影风格配置 (MakerNote 0x0054 / 0x005a)",
+            type: "UNDEFINED / bplist00 (Type 7)",
+            before: "0x0040 旧版或缺失",
+            after: "已注入 0x0054 (109B) + 0x005a (88B)"
+          },
+          {
+            label: "HEIF 调色盘容器流 (styles / styledeltamap / linearthumbnail)",
+            type: "ISO-BMFF uri + 10-bit HEVC grid",
+            before: "无调色盘辅助项",
+            after: result.injectedStyles ? "已注入 styles (57.6KB) + 48切片 deltaMap + 线性缩略图" : "JPEG 仅支持 EXIF/MakerNote 注入"
+          },
+          {
+            label: "保留的非机型元数据 (拍摄时间 / GPS 坐标)",
+            type: "ASCII / RATIONAL",
+            before: s.origDate + " · GPS " + s.gpsCount + " 项",
+            after: "原样无损保留"
+          }
+        ];
+
+        metaList.innerHTML = rows.map(r => `
+          <div class="p-3 rounded-2xl bg-zinc-900/90 border border-zinc-800/90 flex flex-col gap-1">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium text-zinc-200">${r.label}</span>
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-amber-300">${r.type}</span>
+            </div>
+            <div class="text-zinc-400 flex flex-wrap items-center gap-1.5 mt-0.5">
+              <span class="line-through text-zinc-500">${r.before}</span>
+              <span class="text-zinc-500">→</span>
+              <span class="text-emerald-300 font-medium">${r.after}</span>
+            </div>
+          </div>
+        `).join("");
+
+      } catch (err) {
+        statusBadge.textContent = "解析异常";
+        statusBadge.className = "px-2.5 py-1 text-xs font-medium rounded-full bg-red-500/20 text-red-300 border border-red-500/40";
+        metaReport.classList.remove("hidden");
+        metaList.innerHTML = `<div class="p-3 rounded-2xl bg-red-950/50 border border-red-800 text-red-200 text-xs">处理照片时出现异常：${err.message}</div>`;
+      }
+    });
+  </script>
+</body>
+</html>
